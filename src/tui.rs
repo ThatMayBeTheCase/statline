@@ -1,10 +1,11 @@
+use crate::monitor::SystemStats;
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Gauge, Paragraph},
 };
 
-pub fn render(frame: &mut Frame) {
+pub fn render(frame: &mut Frame, stats: &SystemStats) {
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -23,14 +24,25 @@ pub fn render(frame: &mut Frame) {
         ])
         .split(rows[0]);
 
-    let cpu =
-        Paragraph::new("Usage: 24%").block(Block::default().title(" CPU ").borders(Borders::ALL));
+    let used_gib = stats.used_ram as f64 / 1024.0_f64.powi(3);
+    let total_gib = stats.total_ram as f64 / 1024.0_f64.powi(3);
+
+    let ram_percent = if stats.total_ram > 0 {
+        (stats.used_ram as f64 / stats.total_ram as f64 * 100.0) as u16
+    } else {
+        0
+    };
+
+    let cpu = Paragraph::new(format!("Usage: {:.1}%", stats.cpu_usage))
+        .block(Block::default().title(" CPU ").borders(Borders::ALL));
 
     let gpu =
         Paragraph::new("Usage: 47%").block(Block::default().title(" GPU ").borders(Borders::ALL));
 
-    let ram =
-        Paragraph::new("Usage: 70%").block(Block::default().title(" RAM ").borders(Borders::ALL));
+    let ram = Gauge::default()
+        .block(Block::default().title(" RAM ").borders(Borders::ALL))
+        .percent(ram_percent.min(100))
+        .label(format!("{:.1} / {:.1} GiB", used_gib, total_gib));
 
     let active_sessions = Paragraph::new("No active sessions").block(
         Block::default()
