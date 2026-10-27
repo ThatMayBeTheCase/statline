@@ -1,0 +1,5 @@
+/target
+/statline.db
+/statline.db-journal
+/statline.db-wal
+/statline.db-shm
