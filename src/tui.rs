@@ -33,8 +33,12 @@ pub fn render(frame: &mut Frame, stats: &SystemStats) {
         0
     };
 
-    let cpu = Paragraph::new(format!("Usage: {:.1}%", stats.cpu_usage))
-        .block(Block::default().title(" CPU ").borders(Borders::ALL));
+    let cpu_percent = stats.cpu_usage.clamp(0.0, 100.0) as u16;
+
+    let cpu = Gauge::default()
+        .block(Block::default().title(" CPU ").borders(Borders::ALL))
+        .percent(cpu_percent)
+        .label(format!("{:.1}%", stats.cpu_usage));
 
     let gpu =
         Paragraph::new("Usage: 47%").block(Block::default().title(" GPU ").borders(Borders::ALL));
